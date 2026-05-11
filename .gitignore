@@ -1,0 +1,10 @@
+
+env-jantung/
+
+__pycache__/
+.ipynb_checkpoints/
+
+data/
+output/rahmatdi-pipeline/
+
+!output/serving_model/
