@@ -1,0 +1,9 @@
+tfx==1.11.0
+tensorflow
+keras-tuner
+scikit-learn
+flask
+joblib
+jupyter
+pylint
+requests

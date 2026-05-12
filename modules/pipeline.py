@@ -1,5 +1,3 @@
-"""Pipeline orchestration module"""
-
 import os
 from absl import logging
 from tfx.orchestration import metadata, pipeline

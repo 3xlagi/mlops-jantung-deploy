@@ -1,5 +1,3 @@
-"""Training module for Heart Failure Prediction"""
-
 import os
 import tensorflow as tf
 from keras.utils.vis_utils import plot_model
@@ -12,10 +10,15 @@ from transform import (
     transformed_name,
 )
 
-def get_model(show_summary=True):
+def get_model(hyperparameters=None, show_summary=True):
     """
-    Mendefinisikan arsitektur Keras Model.
+    Mendefinisikan arsitektur Keras Model dengan Hyperparameters.
     """
+    hp_units_1 = hyperparameters.get('units_1', 128) if hyperparameters else 128
+    hp_units_2 = hyperparameters.get('units_2', 64) if hyperparameters else 64
+    hp_dropout_1 = hyperparameters.get('dropout_1', 0.2) if hyperparameters else 0.2
+    hp_learning_rate = hyperparameters.get('learning_rate', 0.001) if hyperparameters else 0.001
+
     input_features = []
     
     for key, dim in CATEGORICAL_FEATURES.items():
@@ -29,16 +32,16 @@ def get_model(show_summary=True):
         )
 
     concatenate = tf.keras.layers.concatenate(input_features)
-    deep = tf.keras.layers.Dense(128, activation="relu")(concatenate)
-    deep = tf.keras.layers.Dropout(0.2)(deep)
-    deep = tf.keras.layers.Dense(64, activation="relu")(deep)
-    deep = tf.keras.layers.Dropout(0.2)(deep)
+    deep = tf.keras.layers.Dense(hp_units_1, activation="relu")(concatenate)
+    deep = tf.keras.layers.Dropout(hp_dropout_1)(deep)
+    deep = tf.keras.layers.Dense(hp_units_2, activation="relu")(deep)
+    deep = tf.keras.layers.Dropout(hp_dropout_1)(deep)
     deep = tf.keras.layers.Dense(32, activation="relu")(deep)
     outputs = tf.keras.layers.Dense(1, activation="sigmoid")(deep)
 
     model = tf.keras.models.Model(inputs=input_features, outputs=outputs)
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        optimizer=tf.keras.optimizers.Adam(learning_rate=hp_learning_rate),
         loss="binary_crossentropy",
         metrics=[tf.keras.metrics.BinaryAccuracy()]
     )
@@ -53,7 +56,6 @@ def gzip_reader_fn(filenames):
     return tf.data.TFRecordDataset(filenames, compression_type='GZIP')
 
 def get_serve_tf_examples_fn(model, tf_transform_output):
-    """Returns a function that parses a serialized tf.Example."""
     model.tft_layer = tf_transform_output.transform_features_layer()
 
     @tf.function
@@ -70,7 +72,6 @@ def get_serve_tf_examples_fn(model, tf_transform_output):
     return serve_tf_examples_fn
 
 def input_fn(file_pattern, tf_transform_output, batch_size=64):
-    """Generates features and labels for training."""
     transformed_feature_spec = (
         tf_transform_output.transformed_feature_spec().copy()
     )
@@ -85,13 +86,14 @@ def input_fn(file_pattern, tf_transform_output, batch_size=64):
     return dataset
 
 def run_fn(fn_args):
-    """Train the model based on given args."""
     tf_transform_output = tft.TFTransformOutput(fn_args.transform_output)
 
     train_dataset = input_fn(fn_args.train_files, tf_transform_output, 64)
     eval_dataset = input_fn(fn_args.eval_files, tf_transform_output, 64)
 
-    model = get_model()
+    # Menangkap hyperparameter terbaik dari output Tuner
+    hyperparameters = fn_args.hyperparameters.get('values') if fn_args.hyperparameters else None
+    model = get_model(hyperparameters)
 
     log_dir = os.path.join(os.path.dirname(fn_args.serving_model_dir), "logs")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(
