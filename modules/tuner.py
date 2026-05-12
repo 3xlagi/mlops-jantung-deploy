@@ -1,9 +1,11 @@
+"""Modul untuk hyperparameter tuning."""
+
 import keras_tuner as kt
 import tensorflow as tf
 import tensorflow_transform as tft
 from tfx.components.trainer.fn_args_utils import FnArgs
 from tfx.components.tuner.component import TunerFnResult
-from transform import CATEGORICAL_FEATURES, NUMERICAL_FEATURES, transformed_name, LABEL_KEY
+from transform import CATEGORICAL_FEATURES, NUMERICAL_FEATURES, transformed_name
 from trainer import input_fn
 
 def get_tuner_model(hp):

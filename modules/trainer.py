@@ -1,3 +1,5 @@
+"""Modul untuk melatih model machine learning."""
+
 import os
 import tensorflow as tf
 from keras.utils.vis_utils import plot_model
@@ -20,7 +22,7 @@ def get_model(hyperparameters=None, show_summary=True):
     hp_learning_rate = hyperparameters.get('learning_rate', 0.001) if hyperparameters else 0.001
 
     input_features = []
-    
+
     for key, dim in CATEGORICAL_FEATURES.items():
         input_features.append(
             tf.keras.Input(shape=(dim + 1,), name=transformed_name(key))

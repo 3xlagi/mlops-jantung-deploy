@@ -1,3 +1,5 @@
+"""Modul untuk merangkai pipeline TFX."""
+
 import os
 from absl import logging
 from tfx.orchestration import metadata, pipeline

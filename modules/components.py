@@ -1,3 +1,5 @@
+"""Modul untuk menginisiasi komponen TFX."""
+
 import os
 import tensorflow_model_analysis as tfma
 from tfx.components import (
@@ -6,12 +8,12 @@ from tfx.components import (
     SchemaGen,
     ExampleValidator,
     Transform,
-    Tuner,        
+    Tuner,
     Trainer,
     Evaluator,
     Pusher
 )
-from tfx.proto import example_gen_pb2, trainer_pb2, pusher_pb2, tuner_pb2 
+from tfx.proto import example_gen_pb2, trainer_pb2, pusher_pb2
 from tfx.types import Channel
 from tfx.dsl.components.common.resolver import Resolver
 from tfx.types.standard_artifacts import Model, ModelBlessing
@@ -22,7 +24,7 @@ def init_components(
     data_dir,
     transform_module,
     training_module,
-    tuner_module,        
+    tuner_module,
     training_steps,
     eval_steps,
     serving_model_dir,
@@ -36,22 +38,22 @@ def init_components(
     )
 
     example_gen = CsvExampleGen(input_base=data_dir, output_config=output)
-    
+
     statistics_gen = StatisticsGen(examples=example_gen.outputs["examples"])
-    
+
     schema_gen = SchemaGen(statistics=statistics_gen.outputs["statistics"])
-    
+
     example_validator = ExampleValidator(
         statistics=statistics_gen.outputs['statistics'],
         schema=schema_gen.outputs['schema']
     )
-    
+
     transform = Transform(
         examples=example_gen.outputs['examples'],
         schema=schema_gen.outputs['schema'],
         module_file=os.path.abspath(transform_module)
     )
-    
+
     # Inisiasi komponen Tuner
     tuner = Tuner(
         module_file=os.path.abspath(tuner_module),
@@ -72,7 +74,7 @@ def init_components(
         train_args=trainer_pb2.TrainArgs(splits=['train'], num_steps=training_steps),
         eval_args=trainer_pb2.EvalArgs(splits=['eval'], num_steps=eval_steps)
     )
-    
+
     model_resolver = Resolver(
         strategy_class=LatestBlessedModelStrategy,
         model=Channel(type=Model),

@@ -1,3 +1,5 @@
+"""Modul untuk melakukan preprocessing data."""
+
 import tensorflow as tf
 import tensorflow_transform as tft
 
